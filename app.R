@@ -38,52 +38,52 @@ ui <- dashboardPage(
     tabItems(
       # Calculator Tab
       tabItem(tabName = "calculator",
-              fluidRow(
-                box(
-                  title = "Initial Parameters",
-                  width = 6,
-                  numericInput("current_volume", "Current Culture Volume", value = 20),
-                  selectInput("volume_unit", "Volume Unit", 
-                              choices = c("ml", "µl"), 
-                              selected = "ml"),
-                  numericInput("current_conc", "Current Drug Concentration", value = 700),
-                  selectInput("current_conc_unit", "Current Concentration Unit", 
-                              choices = c("ng/ml", "µg/ml", "mg/ml", "g/ml"), 
-                              selected = "ng/ml"),
-                  numericInput("feeding_volume", "Feeding Volume", value = 2),
-                  selectInput("feeding_volume_unit", "Feeding Volume Unit", 
-                              choices = c("ml", "µl"), 
-                              selected = "ml"),
-                  numericInput("conc_increment", "Desired Concentration Increment", value = 50),
-                  selectInput("increment_unit", "Increment Unit", 
-                              choices = c("ng/ml", "µg/ml", "mg/ml", "g/ml"), 
-                              selected = "ng/ml"),
-                  numericInput("stock_conc", "Drug Stock Concentration", value = 100),
-                  selectInput("stock_conc_unit", "Stock Concentration Unit", 
-                              choices = c("ng/ml", "µg/ml", "mg/ml", "g/ml"), 
-                              selected = "µg/ml"),
-                  numericInput("steps", "Number of Feeding Steps", value = 5),
-                  actionButton("calculate", "Calculate", class = "btn-primary")
-                ),
-                box(
-                  title = "Results",
-                  width = 6,
-                  selectInput("display_unit", "Display Results In", 
-                              choices = c("ng/ml", "µg/ml", "mg/ml", "g/ml"), 
-                              selected = "ng/ml"),
-                  downloadButton("downloadData", "Export to Excel", class = "btn-success"),
-                  verbatimTextOutput("calculation_text"),
-                  DTOutput("results_table")
-                )
-              )
+        fluidRow(
+          box(
+            title = "Initial Parameters",
+            width = 6,
+            numericInput("current_volume", "Current Culture Volume", value = 20),
+            selectInput("volume_unit", "Volume Unit", 
+                       choices = c("ml", "µl"), 
+                       selected = "ml"),
+            numericInput("current_conc", "Current Drug Concentration", value = 700),
+            selectInput("current_conc_unit", "Current Concentration Unit", 
+                       choices = c("ng/ml", "µg/ml", "mg/ml", "g/ml"), 
+                       selected = "ng/ml"),
+            numericInput("feeding_volume", "Feeding Volume", value = 2),
+            selectInput("feeding_volume_unit", "Feeding Volume Unit", 
+                       choices = c("ml", "µl"), 
+                       selected = "ml"),
+            numericInput("conc_increment", "Desired Concentration Increment", value = 50),
+            selectInput("increment_unit", "Increment Unit", 
+                       choices = c("ng/ml", "µg/ml", "mg/ml", "g/ml"), 
+                       selected = "ng/ml"),
+            numericInput("stock_conc", "Drug Stock Concentration", value = 100),
+            selectInput("stock_conc_unit", "Stock Concentration Unit", 
+                       choices = c("ng/ml", "µg/ml", "mg/ml", "g/ml"), 
+                       selected = "µg/ml"),
+            numericInput("steps", "Number of Feeding Steps", value = 5),
+            actionButton("calculate", "Calculate", class = "btn-primary")
+          ),
+          box(
+            title = "Results",
+            width = 6,
+            selectInput("display_unit", "Display Results In", 
+                       choices = c("ng/ml", "µg/ml", "mg/ml", "g/ml"), 
+                       selected = "ng/ml"),
+            downloadButton("downloadData", "Export to Excel", class = "btn-success"),
+            verbatimTextOutput("calculation_text"),
+            DTOutput("results_table")
+          )
+        )
       ),
       
       # Instructions Tab
       tabItem(tabName = "instructions",
-              box(
-                title = "How to Use This Calculator",
-                width = 12,
-                HTML("
+        box(
+          title = "How to Use This Calculator",
+          width = 12,
+          HTML("
             <h4>Instructions:</h4>
             <ol>
               <li>Enter your initial culture parameters:</li>
@@ -109,18 +109,110 @@ ui <- dashboardPage(
               <li>The Excel export includes all calculations and parameters used</li>
             </ul>
           ")
-              )
+        )
       ),
       
       # Calculation Logic Tab
       tabItem(tabName = "logic",
-              box(
-                title = "Step-by-Step Calculation Logic",
-                width = 12,
-                HTML("
-            [Previous HTML content for calculation logic remains the same]
+        box(
+          title = "Step-by-Step Calculation Logic",
+          width = 12,
+          HTML("
+            <h4>Overview of Drug Dilution Calculations</h4>
+            <p>The calculations in this app follow a systematic approach to account for both dilution effects and concentration increments. Here's the detailed logic:</p>
+            
+            <h4>1. Unit Conversion</h4>
+            <ul>
+              <li>All concentrations are converted to ng/ml internally:
+                <ul>
+                  <li>µg/ml → ng/ml: multiply by 1,000</li>
+                  <li>mg/ml → ng/ml: multiply by 1,000,000</li>
+                  <li>g/ml → ng/ml: multiply by 1,000,000,000</li>
+                </ul>
+              </li>
+              <li>All volumes are converted to ml:
+                <ul>
+                  <li>µl → ml: divide by 1,000</li>
+                </ul>
+              </li>
+            </ul>
+
+            <h4>2. Dilution Effect Calculation</h4>
+            <div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;'>
+              <p><strong>Formula:</strong> C<sub>diluted</sub> = (C<sub>initial</sub> × V<sub>initial</sub>) ÷ V<sub>final</sub></p>
+              <p>Where:</p>
+              <ul>
+                <li>C<sub>diluted</sub> = Concentration after dilution</li>
+                <li>C<sub>initial</sub> = Starting concentration</li>
+                <li>V<sub>initial</sub> = Initial volume</li>
+                <li>V<sub>final</sub> = V<sub>initial</sub> + V<sub>feeding</sub></li>
+              </ul>
+            </div>
+
+            <h4>3. Target Concentration Calculation</h4>
+            <div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;'>
+              <p><strong>Formula:</strong> C<sub>target</sub> = C<sub>initial</sub> + C<sub>increment</sub></p>
+              <p>Where:</p>
+              <ul>
+                <li>C<sub>target</sub> = Desired final concentration</li>
+                <li>C<sub>initial</sub> = Starting concentration</li>
+                <li>C<sub>increment</sub> = Desired concentration increase</li>
+              </ul>
+            </div>
+
+            <h4>4. Required Drug Amount Calculation</h4>
+            <div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;'>
+              <p><strong>Formulas:</strong></p>
+              <p>Amount<sub>final needed</sub> = C<sub>target</sub> × V<sub>final</sub></p>
+              <p>Amount<sub>current</sub> = C<sub>diluted</sub> × V<sub>final</sub></p>
+              <p>Amount<sub>additional</sub> = Amount<sub>final needed</sub> - Amount<sub>current</sub></p>
+            </div>
+
+            <h4>5. Stock Solution Volume Calculation</h4>
+            <div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;'>
+              <p><strong>Formula:</strong> V<sub>stock</sub> = Amount<sub>additional</sub> ÷ C<sub>stock</sub></p>
+              <p>Where:</p>
+              <ul>
+                <li>V<sub>stock</sub> = Volume of stock solution needed</li>
+                <li>Amount<sub>additional</sub> = Additional amount of drug needed</li>
+                <li>C<sub>stock</sub> = Concentration of stock solution</li>
+              </ul>
+            </div>
+
+            <h4>Example Calculation</h4>
+            <p>Let's work through an example with these initial conditions:</p>
+            <ul>
+              <li>Current volume: 20 ml</li>
+              <li>Current concentration: 700 ng/ml</li>
+              <li>Feeding volume: 2 ml</li>
+              <li>Desired increment: 50 ng/ml</li>
+              <li>Stock concentration: 100,000 ng/ml</li>
+            </ul>
+            
+            <p><strong>Step 1:</strong> Calculate diluted concentration</p>
+            <ul>
+              <li>V<sub>final</sub> = 20 ml + 2 ml = 22 ml</li>
+              <li>C<sub>diluted</sub> = (700 ng/ml × 20 ml) ÷ 22 ml = 636.36 ng/ml</li>
+            </ul>
+            
+            <p><strong>Step 2:</strong> Calculate target concentration</p>
+            <ul>
+              <li>C<sub>target</sub> = 700 ng/ml + 50 ng/ml = 750 ng/ml</li>
+            </ul>
+            
+            <p><strong>Step 3:</strong> Calculate additional drug needed</p>
+            <ul>
+              <li>Amount<sub>final needed</sub> = 750 ng/ml × 22 ml = 16,500 ng</li>
+              <li>Amount<sub>current</sub> = 636.36 ng/ml × 22 ml = 14,000 ng</li>
+              <li>Amount<sub>additional</sub> = 16,500 ng - 14,000 ng = 2,500 ng</li>
+            </ul>
+            
+            <p><strong>Step 4:</strong> Calculate stock volume needed</p>
+            <ul>
+              <li>V<sub>stock</sub> = 2,500 ng ÷ 100,000 ng/ml = 0.025 ml = 25 µl</li>
+            </ul>
           ")
-              )
+        )
       )
     )
   )
@@ -193,7 +285,7 @@ server <- function(input, output) {
   parameters_summary <- reactive({
     data.frame(
       Parameter = c("Current Volume", "Current Concentration", "Feeding Volume",
-                    "Concentration Increment", "Stock Concentration"),
+                   "Concentration Increment", "Stock Concentration"),
       Value = c(input$current_volume, input$current_conc, input$feeding_volume,
                 input$conc_increment, input$stock_conc),
       Unit = c(input$volume_unit, input$current_conc_unit, input$feeding_volume_unit,
